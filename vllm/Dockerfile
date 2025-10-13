@@ -1,10 +1,16 @@
 # syntax=docker/dockerfile:1.6
-ARG BASE_IMAGE=ghcr.io/dusty-nv/jetson-containers:vllm
+ARG BASE_IMAGE=nvcr.io/nvidia/tritonserver:25.08-vllm-python-py3
 FROM ${BASE_IMAGE} AS runtime
 
 ENV VLLM_WORKER_USE_NCCL=0 \
     VLLM_OPENAI_PORT=8000 \
-    CUDA_VISIBLE_DEVICES=0
+    CUDA_VISIBLE_DEVICES=0 \
+    HTTP_PROXY=http://127.0.0.1:2526 \
+    http_proxy=http://127.0.0.1:2526 \
+    HTTPS_PROXY=http://127.0.0.1:2526 \
+    https_proxy=http://127.0.0.1:2526 \
+    NO_PROXY=localhost,127.0.0.1 \
+    no_proxy=localhost,127.0.0.1
 
 WORKDIR /app
 

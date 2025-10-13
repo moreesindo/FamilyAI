@@ -20,7 +20,7 @@ Only Jetson Thor servers should run the stack. Use development machines for auth
 ## Workflow
 
 ```bash
-# 1. Prepare model cache locally on Jetson (runs inside vLLM container)
+# 1. Prepare model cache locally on Jetson (runs inside vLLM container; proxy expected at http://127.0.0.1:2526)
 HUGGINGFACEHUB_API_TOKEN=<token> ./scripts/02-pull-models.sh  # token optional for public models
 
 # 2. Launch full stack (Jetson only)
@@ -34,3 +34,5 @@ CONTROL_PLANE_URL=http://localhost:9000 ./scripts/07-control-plane-cli.sh list
 ```
 
 For production, apply manifests under `k3s/` to the on-device K3s cluster. Contributor guidance lives in `AGENTS.md`; operational playbooks are in `docs/05-troubleshooting.md`.
+
+> ℹ️ 代理提示：`vllm` 镜像基于 `nvcr.io/nvidia/tritonserver:25.08-vllm-python-py3`，容器内默认设置 `HTTP(S)_PROXY=http://127.0.0.1:2526`。请确保对应代理在容器内部可访问，或按需修改 Dockerfile/Compose 环境变量。
