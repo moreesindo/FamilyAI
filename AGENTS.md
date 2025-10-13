@@ -200,11 +200,11 @@ Monitoring: Prometheus + Grafana
 
 **Downloading Models (Jetson only)**:
 ```bash
-# Use the provided script
-./scripts/02-pull-models.sh
+# Runs inside the vLLM container; token optional for public repos
+HUGGINGFACEHUB_API_TOKEN=<token> ./scripts/02-pull-models.sh
 ```
 
-Models are cached in `~/.cache/huggingface` and mounted into containers.
+Models populate the Docker volume `familyai_model-cache` (mounted at `/models/hf-cache` inside inference containers). Use `docker volume inspect familyai_model-cache` to confirm occupancy or override the cache path via Docker Engine settings if needed.
 
 **Adding New Models**:
 1. Extend `control-plane/config/models.yaml` and (if local) `vllm/models.yaml`.

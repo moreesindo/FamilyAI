@@ -10,7 +10,7 @@ WORKDIR /app
 
 COPY models.yaml ./models.yaml
 COPY entrypoint.sh ./entrypoint.sh
-RUN pip install --extra-index-url https://pypi.org/simple pyyaml==6.0.1
+RUN pip install --extra-index-url https://pypi.org/simple pyyaml==6.0.1 huggingface-hub==0.23.3
 RUN chmod +x /app/entrypoint.sh
 
 EXPOSE 8000

@@ -20,8 +20,8 @@ Only Jetson Thor servers should run the stack. Use development machines for auth
 ## Workflow
 
 ```bash
-# 1. Prepare model cache locally on Jetson
-./scripts/02-pull-models.sh
+# 1. Prepare model cache locally on Jetson (runs inside vLLM container)
+HUGGINGFACEHUB_API_TOKEN=<token> ./scripts/02-pull-models.sh  # token optional for public models
 
 # 2. Launch full stack (Jetson only)
 ./scripts/03-deploy-docker-compose.sh
