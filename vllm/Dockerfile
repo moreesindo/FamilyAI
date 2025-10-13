@@ -12,7 +12,11 @@ WORKDIR /app
 
 COPY models.yaml ./models.yaml
 COPY entrypoint.sh ./entrypoint.sh
-RUN pip install --no-cache-dir pyyaml==6.0.1 huggingface-hub==0.23.3
+RUN export http_proxy=${PROXY_URL} https_proxy=${PROXY_URL} HTTP_PROXY=${PROXY_URL} HTTPS_PROXY=${PROXY_URL} \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends python3-yaml \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --no-cache-dir huggingface-hub==0.23.3
 RUN chmod +x /app/entrypoint.sh
 
 ENV HTTP_PROXY=${PROXY_URL} \
