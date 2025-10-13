@@ -1,0 +1,61 @@
+models:
+  qwen2_5_coder_32b:
+    endpoint: http://vllm:8000/v1/completions
+    max_context: 8192
+    kind: code
+    provider: local
+  qwen3_coder_30b_a3b:
+    endpoint: http://vllm:8000/v1/completions
+    max_context: 262144
+    kind: code
+    provider: local
+  qwen3_32b:
+    endpoint: http://vllm:8000/v1/chat/completions
+    max_context: 8192
+    kind: chat
+    provider: local
+  qwen3_8b:
+    endpoint: http://vllm:8000/v1/chat/completions
+    max_context: 8192
+    kind: chat
+    provider: local
+  qwen3_4b:
+    endpoint: http://vllm:8000/v1/chat/completions
+    max_context: 8192
+    kind: chat
+    provider: local
+  qwen2_vl_7b:
+    endpoint: http://vision:8300/v1/vision
+    kind: vision
+    provider: local
+  whisper_small:
+    endpoint: http://whisper:8500/v1/transcribe
+    kind: asr
+    provider: local
+  piper_tts:
+    endpoint: http://piper:8600/v1/speak
+    kind: tts
+    provider: local
+
+policies:
+  code:
+    control_plane_profile: default
+    allow_cloud: false
+    default: qwen2_5_coder_32b
+    long_context: qwen3_coder_30b_a3b
+    thresholds:
+      context_tokens: 8000
+  chat:
+    control_plane_profile: default
+    allow_cloud: true
+    lightweight: qwen3_4b
+    balanced: qwen3_8b
+    complex: qwen3_32b
+    thresholds:
+      complexity: 0.6
+  vision:
+    default: qwen2_vl_7b
+  asr:
+    default: whisper_small
+  tts:
+    default: piper_tts

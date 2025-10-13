@@ -1,0 +1,232 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: familyai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+        - name: prometheus
+          image: prom/prometheus-linux-arm64:v2.51.0
+          args:
+            - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--storage.tsdb.path=/prometheus"
+          ports:
+            - containerPort: 9090
+          volumeMounts:
+            - name: prometheus-config
+              mountPath: /etc/prometheus
+            - name: prometheus-data
+              mountPath: /prometheus
+      volumes:
+        - name: prometheus-config
+          configMap:
+            name: prometheus-config
+        - name: prometheus-data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: familyai
+spec:
+  selector:
+    app: prometheus
+  ports:
+    - name: http
+      port: 9090
+      targetPort: 9090
+  type: ClusterIP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: familyai
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+
+    scrape_configs:
+      - job_name: gateway
+        static_configs:
+          - targets:
+              - gateway:8080
+      - job_name: vllm
+        static_configs:
+          - targets:
+              - vllm:8000
+      - job_name: whisper
+        static_configs:
+          - targets:
+              - whisper:8500
+      - job_name: piper
+        static_configs:
+          - targets:
+              - piper:8600
+      - job_name: vision
+        static_configs:
+          - targets:
+              - vision:8300
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: familyai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+        - name: grafana
+          image: grafana/grafana:10.4.0
+          env:
+            - name: GF_SECURITY_ADMIN_USER
+              value: admin
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-admin
+                  key: password
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: grafana-dashboards
+              mountPath: /var/lib/grafana/dashboards
+            - name: grafana-provisioning
+              mountPath: /etc/grafana/provisioning/dashboards
+      volumes:
+        - name: grafana-dashboards
+          configMap:
+            name: grafana-dashboards
+        - name: grafana-provisioning
+          configMap:
+            name: grafana-provisioning
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: familyai
+spec:
+  selector:
+    app: grafana
+  ports:
+    - name: http
+      port: 3001
+      targetPort: 3000
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: grafana-admin
+  namespace: familyai
+type: Opaque
+stringData:
+  password: changeme
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: familyai
+data:
+  familyai.json: |
+    {
+      "title": "FamilyAI Overview",
+      "schemaVersion": 37,
+      "version": 1,
+      "refresh": "30s",
+      "panels": [
+        {
+          "type": "timeseries",
+          "title": "Gateway Latency",
+          "targets": [
+            {
+              "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{service=\"gateway\"}[5m])) by (le))",
+              "legendFormat": "p95"
+            }
+          ],
+          "datasource": "Prometheus"
+        },
+        {
+          "type": "timeseries",
+          "title": "GPU Utilization",
+          "targets": [
+            {
+              "expr": "avg(nvidia_gpu_utilization)",
+              "legendFormat": "GPU"
+            }
+          ],
+          "datasource": "Prometheus"
+        }
+      ]
+    }
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-provisioning
+  namespace: familyai
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+      - name: 'FamilyAI'
+        folder: ''
+        type: file
+        options:
+          path: /var/lib/grafana/dashboards
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-alerts
+  namespace: familyai
+data:
+  alerts.yaml: |
+    groups:
+      - name: familyai
+        rules:
+          - alert: HighGpuTemperature
+            expr: nvidia_gpu_temperature_celsius > 80
+            for: 2m
+            labels:
+              severity: warning
+            annotations:
+              description: GPU temperature has exceeded 80C for more than 2 minutes.
+          - alert: GatewayHighLatency
+            expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{service="gateway"}[5m])) by (le)) > 10
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              description: 95th percentile gateway latency is above 10 seconds.
+          - alert: ServiceDown
+            expr: up{job=~"gateway|vllm|whisper|piper|vision"} == 0
+            for: 2m
+            labels:
+              severity: critical
+            annotations:
+              description: One of the core FamilyAI services is down.
+

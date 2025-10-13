@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm
+  namespace: familyai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm
+  template:
+    metadata:
+      labels:
+        app: vllm
+    spec:
+      runtimeClassName: nvidia
+      nodeSelector:
+        jetson: "true"
+      containers:
+        - name: vllm
+          image: familyai/vllm:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MODEL_CONFIG
+              value: /app/models.yaml
+            - name: HF_HOME
+              value: /models/hf-cache
+            - name: DEFAULT_MODEL
+              value: qwen3_8b
+          ports:
+            - containerPort: 8000
+          volumeMounts:
+            - name: model-cache
+              mountPath: /models/hf-cache
+      volumes:
+        - name: model-cache
+          persistentVolumeClaim:
+            claimName: model-cache
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm
+  namespace: familyai
+spec:
+  selector:
+    app: vllm
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: model-cache
+  namespace: familyai
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 256Gi

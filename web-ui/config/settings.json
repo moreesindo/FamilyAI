@@ -1,0 +1,12 @@
+{
+  "gatewayUrl": "http://gateway:8080",
+  "features": {
+    "enableVisionUpload": true,
+    "enableSpeech": true,
+    "defaultModel": "auto"
+  },
+  "branding": {
+    "appName": "FamilyAI",
+    "logoText": "FamilyAI Hub"
+  }
+}

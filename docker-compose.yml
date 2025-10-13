@@ -1,0 +1,152 @@
+version: "3.9"
+
+volumes:
+  model-cache:
+  grafana-data:
+  prometheus-data:
+
+networks:
+  familyai:
+    driver: bridge
+
+services:
+  gateway:
+    build: ./gateway
+    image: familyai/gateway:dev
+    platform: linux/arm64
+    runtime: nvidia
+    networks:
+      - familyai
+    environment:
+      ROUTING_CONFIG: /app/config/routing.yaml
+      LOG_LEVEL: info
+      GATEWAY_PORT: "8080"
+      CONTROL_PLANE_URL: http://control-plane:9000
+    volumes:
+      - ./gateway/config:/app/config:ro
+    ports:
+      - "8080:8080"
+    depends_on:
+      - vllm
+      - whisper
+      - piper
+      - vision
+      - control-plane
+
+  vllm:
+    build: ./vllm
+    image: familyai/vllm:dev
+    platform: linux/arm64
+    runtime: nvidia
+    networks:
+      - familyai
+    environment:
+      - MODEL_CONFIG=/app/models/models.yaml
+      - HF_HOME=/models/hf-cache
+    volumes:
+      - model-cache:/models/hf-cache
+      - ./vllm/models.yaml:/app/models/models.yaml:ro
+      - ./vllm/entrypoint.sh:/app/entrypoint.sh:ro
+    command: ["/bin/bash", "/app/entrypoint.sh"]
+    expose:
+      - "8000"
+
+  whisper:
+    build: ./whisper
+    image: familyai/whisper:dev
+    platform: linux/arm64
+    runtime: nvidia
+    networks:
+      - familyai
+    environment:
+      - MODEL_NAME=small
+    volumes:
+      - model-cache:/models/hf-cache
+    expose:
+      - "8500"
+
+  piper:
+    build: ./piper
+    image: familyai/piper:dev
+    platform: linux/arm64
+    networks:
+      - familyai
+    environment:
+      - VOICE=en_US-amy-low
+    expose:
+      - "8600"
+
+  vision:
+    build: ./vision
+    image: familyai/vision:dev
+    platform: linux/arm64
+    runtime: nvidia
+    networks:
+      - familyai
+    expose:
+      - "8300"
+
+  control-plane:
+    build: ./control-plane
+    image: familyai/control-plane:dev
+    platform: linux/arm64
+    networks:
+      - familyai
+    environment:
+      - CONTROL_PLANE_ROOT=/app
+    volumes:
+      - ./control-plane/config:/app/config
+    ports:
+      - "9000:9000"
+
+  web-ui:
+    build: ./web-ui
+    image: familyai/web-ui:dev
+    platform: linux/arm64
+    networks:
+      - familyai
+    environment:
+      - GATEWAY_URL=http://gateway:8080
+    ports:
+      - "3000:3000"
+    depends_on:
+      - gateway
+      - control-plane
+
+  admin-ui:
+    build: ./admin-ui
+    image: familyai/admin-ui:dev
+    platform: linux/arm64
+    networks:
+      - familyai
+    environment:
+      - CONTROL_PLANE_URL=http://control-plane:9000
+    ports:
+      - "8081:80"
+    depends_on:
+      - control-plane
+
+  prometheus:
+    image: prom/prometheus-linux-arm64:v2.51.0
+    networks:
+      - familyai
+    volumes:
+      - prometheus-data:/prometheus
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:10.4.0
+    networks:
+      - familyai
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=changeme
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana-dashboard.json:/var/lib/grafana/dashboards/familyai.json:ro
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus

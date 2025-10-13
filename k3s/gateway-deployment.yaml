@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: familyai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      runtimeClassName: nvidia
+      nodeSelector:
+        jetson: "true"
+      containers:
+        - name: gateway
+          image: familyai/gateway:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: ROUTING_CONFIG
+              value: /app/config/routing.yaml
+            - name: LOG_LEVEL
+              value: info
+            - name: CONTROL_PLANE_URL
+              value: http://control-plane.familyai.svc.cluster.local:9000
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: routing-config
+              mountPath: /app/config
+      volumes:
+        - name: routing-config
+          configMap:
+            name: gateway-routing
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: familyai
+spec:
+  selector:
+    app: gateway
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gateway-routing
+  namespace: familyai
+data:
+  routing.yaml: |
+    models:
+      qwen2_5_coder_32b:
+        endpoint: http://vllm:8000/v1/completions
+        max_context: 8192
+        kind: code
+      qwen3_coder_30b_a3b:
+        endpoint: http://vllm:8000/v1/completions
+        max_context: 262144
+        kind: code
+      qwen3_32b:
+        endpoint: http://vllm:8000/v1/chat/completions
+        max_context: 8192
+        kind: chat
+      qwen3_8b:
+        endpoint: http://vllm:8000/v1/chat/completions
+        max_context: 8192
+        kind: chat
+      qwen3_4b:
+        endpoint: http://vllm:8000/v1/chat/completions
+        max_context: 8192
+        kind: chat
+      qwen2_vl_7b:
+        endpoint: http://vision:8300/v1/vision
+        kind: vision
+      whisper_small:
+        endpoint: http://whisper:8500/v1/transcribe
+        kind: asr
+      piper_tts:
+        endpoint: http://piper:8600/v1/speak
+        kind: tts
+
+    policies:
+      code:
+        default: qwen2_5_coder_32b
+        long_context: qwen3_coder_30b_a3b
+        thresholds:
+          context_tokens: 8000
+      chat:
+        lightweight: qwen3_4b
+        balanced: qwen3_8b
+        complex: qwen3_32b
+        thresholds:
+          complexity: 0.6
+      vision:
+        default: qwen2_vl_7b
+      asr:
+        default: whisper_small
+      tts:
+        default: piper_tts

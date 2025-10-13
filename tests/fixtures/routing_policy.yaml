@@ -1,0 +1,14 @@
+models:
+  fast:
+    endpoint: http://localhost:1
+    kind: chat
+  accurate:
+    endpoint: http://localhost:2
+    kind: chat
+policies:
+  chat:
+    lightweight: fast
+    balanced: fast
+    complex: accurate
+    thresholds:
+      complexity: 0.5

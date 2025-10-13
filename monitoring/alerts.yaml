@@ -1,0 +1,24 @@
+groups:
+  - name: familyai
+    rules:
+      - alert: HighGpuTemperature
+        expr: nvidia_gpu_temperature_celsius > 80
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          description: GPU temperature has exceeded 80C for more than 2 minutes.
+      - alert: GatewayHighLatency
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{service="gateway"}[5m])) by (le)) > 10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          description: 95th percentile gateway latency is above 10 seconds.
+      - alert: ServiceDown
+        expr: up{job=~"gateway|vllm|whisper|piper|vision"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          description: One of the core FamilyAI services is down.

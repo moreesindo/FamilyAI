@@ -1,0 +1,30 @@
+{
+  "title": "FamilyAI Overview",
+  "schemaVersion": 37,
+  "version": 1,
+  "refresh": "30s",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Gateway Latency",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{service=\"gateway\"}[5m])) by (le))",
+          "legendFormat": "p95"
+        }
+      ],
+      "datasource": "Prometheus"
+    },
+    {
+      "type": "timeseries",
+      "title": "GPU Utilization",
+      "targets": [
+        {
+          "expr": "avg(nvidia_gpu_utilization)",
+          "legendFormat": "GPU"
+        }
+      ],
+      "datasource": "Prometheus"
+    }
+  ]
+}

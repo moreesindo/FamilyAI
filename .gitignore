@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Node
+node_modules/
+
+# Runtime
+.env
+.env.local
+models/
+cache/
+
+# Editors
+.vscode/
+.idea/

@@ -1,0 +1,105 @@
+profiles:
+  default:
+    routing:
+      code: qwen3_coder_30b_a3b_local
+      chat: qwen3_8b_local
+      vision: qwen2_vl_7b_local
+      asr: whisper_small_local
+      tts: piper_tts_local
+      external_fallback: openrouter_qwen72b_cloud
+
+models:
+  qwen3_coder_30b_a3b_local:
+    provider: local
+    service: vllm
+    label: Qwen3-Coder-30B-A3B (INT4)
+    task: code
+    context: 262144
+    memory_gb: 15
+    latency_ms: 1200
+    cost_per_million: 0
+    endpoint: http://vllm:8000/v1/completions
+  qwen2_5_coder_32b_local:
+    provider: local
+    service: vllm
+    label: Qwen2.5-Coder-32B (INT4)
+    task: code
+    context: 8192
+    memory_gb: 18
+    latency_ms: 1500
+    cost_per_million: 0
+    endpoint: http://vllm:8000/v1/completions
+  qwen3_8b_local:
+    provider: local
+    service: vllm
+    label: Qwen3-8B (INT4)
+    task: chat
+    context: 8192
+    memory_gb: 4
+    latency_ms: 400
+    cost_per_million: 0
+    endpoint: http://vllm:8000/v1/chat/completions
+  qwen3_32b_local:
+    provider: local
+    service: vllm
+    label: Qwen3-32B (INT4)
+    task: chat
+    context: 8192
+    memory_gb: 18
+    latency_ms: 1600
+    cost_per_million: 0
+    endpoint: http://vllm:8000/v1/chat/completions
+  qwen3_4b_local:
+    provider: local
+    service: vllm
+    label: Qwen3-4B (INT4)
+    task: chat
+    context: 8192
+    memory_gb: 2
+    latency_ms: 250
+    cost_per_million: 0
+    endpoint: http://vllm:8000/v1/chat/completions
+  qwen2_vl_7b_local:
+    provider: local
+    service: vision
+    label: Qwen2-VL-7B
+    task: vision
+    context: 4096
+    memory_gb: 4
+    latency_ms: 900
+    cost_per_million: 0
+    endpoint: http://vision:8300/v1/vision
+  whisper_small_local:
+    provider: local
+    service: whisper
+    label: Whisper Small
+    task: asr
+    memory_gb: 2
+    latency_ms: 300
+    cost_per_million: 0
+    endpoint: http://whisper:8500/v1/transcribe
+  piper_tts_local:
+    provider: local
+    service: piper
+    label: Piper en_US Amy Low
+    task: tts
+    memory_gb: 0.5
+    latency_ms: 200
+    cost_per_million: 0
+    endpoint: http://piper:8600/v1/speak
+  openrouter_qwen72b_cloud:
+    provider: cloud-openrouter
+    label: Qwen-72B Cloud
+    task: chat
+    endpoint: https://openrouter.ai/api/v1/chat/completions
+    latency_ms: 1800
+    cost_per_million: 2.5
+    auth_env: OPENROUTER_API_KEY
+  openrouter_gpt4o_cloud:
+    provider: cloud-openrouter
+    label: GPT-4o (OpenRouter)
+    task: chat
+    endpoint: https://openrouter.ai/api/v1/chat/completions
+    latency_ms: 2500
+    cost_per_million: 10
+    auth_env: OPENROUTER_API_KEY
