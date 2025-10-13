@@ -35,4 +35,6 @@ CONTROL_PLANE_URL=http://localhost:9000 ./scripts/07-control-plane-cli.sh list
 
 For production, apply manifests under `k3s/` to the on-device K3s cluster. Contributor guidance lives in `AGENTS.md`; operational playbooks are in `docs/05-troubleshooting.md`.
 
-> ℹ️ 代理提示：`vllm` 镜像基于 `nvcr.io/nvidia/tritonserver:25.08-vllm-python-py3`，容器内默认设置 `HTTP(S)_PROXY=http://127.0.0.1:2526`。请确保对应代理在容器内部可访问，或按需修改 Dockerfile/Compose 环境变量。
+> ℹ️ 代理提示：`vllm` 镜像基于 `nvcr.io/nvidia/tritonserver:25.08-vllm-python-py3`，容器内默认设置 `HTTP(S)_PROXY=http://127.0.0.1:2526`。通常需要把宿主机 Docker 网桥地址（如 `192.168.3.84`）传给构建：  
+> `export PROXY_URL=http://192.168.3.84:2526 && docker compose build vllm`  
+> 也可使用 `--build-arg PROXY_URL=<url>` 或在 Compose/K3s 环境变量中重写。

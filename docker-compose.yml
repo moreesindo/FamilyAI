@@ -34,7 +34,10 @@ services:
       - control-plane
 
   vllm:
-    build: ./vllm
+    build:
+      context: ./vllm
+      args:
+        PROXY_URL: ${PROXY_URL:-http://192.168.3.84:2526}
     image: familyai/vllm:dev
     platform: linux/arm64
     runtime: nvidia
