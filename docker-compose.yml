@@ -58,7 +58,8 @@ services:
     build:
       context: ./whisper
       args:
-        WHISPER_BASE_TAG: ${WHISPER_BASE_TAG:-r35.2.1}
+        WHISPER_BASE_IMAGE: ${WHISPER_BASE_IMAGE:-nvcr.io/nvidia/l4t-pytorch}
+        WHISPER_BASE_TAG: ${WHISPER_BASE_TAG:-r35.2.1-pth2.0-py3}
         PROXY_URL: ${PROXY_URL:-http://192.168.3.84:2526}
     image: familyai/whisper:dev
     platform: linux/arm64
