@@ -206,7 +206,8 @@ HUGGINGFACEHUB_API_TOKEN=<token> ./scripts/02-pull-models.sh
 
 Models populate the Docker volume `familyai_model-cache` (mounted at `/models/hf-cache` inside inference containers). Use `docker volume inspect familyai_model-cache` to confirm occupancy or override the cache path via Docker Engine settings if needed.
 
-> Proxy Note: `vllm` builds from `nvcr.io/nvidia/tritonserver:25.08-vllm-python-py3` and sets `HTTP(S)_PROXY=http://127.0.0.1:2526`. Usually you should point it to the Docker bridge IP (e.g., `http://192.168.3.84:2526`) via `PROXY_URL` when building: `PROXY_URL=http://192.168.3.84:2526 docker compose build vllm`. Adjust Compose/K3s envs if your network layout differs.
+> Proxy Note: `vllm` builds from `nvcr.io/nvidia/tritonserver:25.08-vllm-python-py3` and sets `HTTP(S)_PROXY=http://127.0.0.1:2526`. Usually you should point it to the Docker bridge IP (e.g., `http://192.168.3.84:2526`) via `PROXY_URL` when building: `PROXY_URL=http://192.168.3.84:2526 docker compose build vllm`. Adjust Compose/K3s envs if your network layout differs.  
+> Whisper Build: the ASR service now compiles from `ghcr.io/dusty-nv/jetson-containers/l4t-pytorch:<tag>` and installs Whisper + ffmpeg/libsndfile during build. Default tag is `r36.2.0` (JetPack 6.0 / L4T r36.2); override `WHISPER_BASE_TAG` if your Jetson runs another JetPack release.
 
 **Adding New Models**:
 1. Extend `control-plane/config/models.yaml` and (if local) `vllm/models.yaml`.
