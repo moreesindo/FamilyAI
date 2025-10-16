@@ -24,7 +24,9 @@ Only Jetson Thor servers should run the stack. Use development machines for auth
 HUGGINGFACEHUB_API_TOKEN=<token> ./scripts/02-pull-models.sh  # token optional for public models
 
 # 2. Launch full stack (Jetson only)
-./scripts/03-deploy-docker-compose.sh
+#    (set GHCR_USERNAME/GHCR_TOKEN if ghcr.io rate limits pulls)
+GHCR_USERNAME=<github-username> GHCR_TOKEN=<github-personal-access-token> \
+  ./scripts/03-deploy-docker-compose.sh
 
 # 3. Verify health (requires docker compose access)
 ./scripts/05-health-check.sh
