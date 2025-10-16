@@ -3,10 +3,10 @@ presets:
     download:
       - Qwen/Qwen2.5-Coder-32B-Instruct
       - Qwen/Qwen3-Coder-30B-A3B-Instruct
-      - Qwen/Qwen3-32B-Instruct
+      - Qwen/Qwen3-30B-A3B-Instruct-2507
       - Qwen/Qwen3-8B-Instruct
-      - Qwen/Qwen3-4B-Instruct
-      - Qwen/Qwen2-VL-7B-Instruct
+      - Qwen/Qwen3-4B-Instruct-2507
+      - Qwen/Qwen3-VL-8B-Instruct
     quantization: awq
 
 models:
@@ -20,23 +20,23 @@ models:
     dtype: int4
     tensor_parallel: 1
     max_model_len: 262144
-  qwen3_32b:
-    repository: Qwen/Qwen3-32B-Instruct
+  qwen3_30b_a3b:
+    repository: Qwen/Qwen3-30B-A3B-Instruct-2507
     dtype: int4
     tensor_parallel: 1
-    max_model_len: 8192
+    max_model_len: 262144
   qwen3_8b:
-    repository: Qwen/Qwen3-8B-Instruct
+    repository: lm-kit/qwen-3-8b-instruct-gguf
     dtype: int4
     tensor_parallel: 1
-    max_model_len: 8192
+    max_model_len: 131072
   qwen3_4b:
-    repository: Qwen/Qwen3-4B-Instruct
+    repository: Qwen/Qwen3-4B-Instruct-2507-FP8
     dtype: int4
     tensor_parallel: 1
-    max_model_len: 8192
-  qwen2_vl_7b:
-    repository: Qwen/Qwen2-VL-7B-Instruct
-    dtype: int4
+    max_model_len: 262144
+  qwen3_8b:
+    repository: Qwen/Qwen3-VL-8B-Instruct
+    dtype: auto
     tensor_parallel: 1
-    max_model_len: 4096
+    max_model_len: 262144
