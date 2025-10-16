@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.6
-ARG WHISPER_BASE_IMAGE=ghcr.io/dusty-nv/jetson-containers/l4t-pytorch
-ARG WHISPER_BASE_TAG=${WHISPER_BASE_TAG:-r36.2.0}
+ARG WHISPER_BASE_IMAGE=${WHISPER_BASE_IMAGE:nvcr.io/nvidia/l4t-pytorch}
+ARG WHISPER_BASE_TAG=${WHISPER_BASE_TAG:r35.2.1-pth2.0-py3}
 ARG PROXY_URL
 FROM ${WHISPER_BASE_IMAGE}:${WHISPER_BASE_TAG} AS runtime
 
