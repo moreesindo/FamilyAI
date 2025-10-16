@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG BASE_IMAGE=ghcr.io/dusty-nv/jetson-containers:whisper
+ARG BASE_IMAGE=ghcr.io/dusty-nv/jetson-containers/whisper:latest
 FROM ${BASE_IMAGE} AS runtime
 
 ENV PYTHONUNBUFFERED=1 \
